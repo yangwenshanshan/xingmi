@@ -19,7 +19,7 @@
     </scroll-view>
     <view class="chat-bottom-holder" :class="{ 'logpress-chat-bottom-holder': longPressing }" :style="longPressing ? `height: 908rpx;bottom:${changeBottomVal}` : `height: ${bottomHeight};bottom:${changeBottomVal}`"></view>
     <view class="chat-bottom" :style="`height: ${bottomHeight};bottom:${changeBottomVal}`">
-      <view v-if="!longPressing" class="bottom-tip" :style="moreOpen ? 'top: 74rpx;' : 'top: 148rpx'">
+      <view v-if="!longPressing" class="bottom-tip" :class="{ 'linear-transition': optListTransition }" :style="moreOpen ? 'top: 74rpx;' : 'top: 148rpx'">
         <image class="tip-image" src="../../static/card-small-1.png" mode="heightFix" @click="goCard"></image>
         <view class="image-parent">
           <image class="tip-image" src="../../static/card-small-2.png" mode="heightFix"></image>
@@ -27,7 +27,7 @@
         </view>
         <image class="tip-image" src="../../static/card-small-3.png" mode="heightFix" @click="giftVisible = true"></image>
       </view>
-      <view  class="opt-list" :style="moreOpen && inputVisible && !longPressing ? 'bottom: 100rpx' : 'bottom: -200rpx'">
+      <view  class="opt-list" :class="{ 'linear-transition': optListTransition }" :style="moreOpen && inputVisible && !longPressing ? 'bottom: 100rpx' : 'bottom: -200rpx'">
         <view class="opt-item" @click="sendMsgImage"> 
           <image src="../../static/card-pic.png" mode="heightFix"></image>
           <view>图片</view>
@@ -48,7 +48,7 @@
       <view class="opt-gift" v-if="giftVisible && !longPressing" @click="giftVisible = false">
         <image src="../../static/gift.png" mode="widthFix" class="gift-image"></image>
       </view>
-      <view class="bottom-input" :class="longPressing ? 'bottom-input-pressing' : ''" :style="moreOpen ? 'bottom: 312rpx' : 'bottom: 80rpx'">
+      <view class="bottom-input" :class="{ 'bottom-input-pressing': longPressing, 'linear-transition': optListTransition }" :style="moreOpen ? 'bottom: 312rpx' : 'bottom: 80rpx'">
         <template v-if="!longPressing">
           <image @click="inputVisibleClick(false)" v-if="inputVisible" class="input-image" src="../../static/chat-audio.png"></image>
           <image @click="inputVisibleClick(true)" v-else class="input-image" src="../../static/chat-input.png"></image>
@@ -116,6 +116,7 @@ recorderManager.onStop((res) => {
 });
 let innerAudioContext = null
 const canSendAudio = ref(false)
+const optListTransition = ref(false)
 const starId = ref('')
 const chatId = ref('')
 const msgList = ref([])
@@ -156,6 +157,11 @@ onLoad((option) => {
   getDetail()
 })
 onUnload(() => {
+  if (innerAudioContext) {
+    innerAudioContext.stop()
+    innerAudioContext.destroy()
+    innerAudioContext = null
+  }
   tim.off(timEvent.MESSAGE_RECEIVED, onMessageReceived);
 })
 function playAudio (item) {
@@ -173,8 +179,6 @@ function playAudio (item) {
   } else {
     innerAudioContext = uni.createInnerAudioContext()
     innerAudioContext.onEnded(() => {
-      innerAudioContext.destroy()
-      innerAudioContext = null
       item.isPlaying = false
     })
     innerAudioContext.src = item.payload.url
@@ -216,6 +220,10 @@ function handleTouchEnd() {
 function onTouchstartScrollView () {
   uni.hideKeyboard()
   moreOpen.value = false
+  optListTransition.value = true
+  setTimeout(() => {
+    optListTransition.value = false
+  }, 100);
 }
 function scrollBottom () {
   nextTick(() => {
@@ -303,11 +311,16 @@ function inputVisibleClick (flag) {
   }
 }
 function moreOpenClick (flag) {
+  optListTransition.value = true
   moreOpen.value = flag
   if (flag === true) {
     inputVisible.value = true
   }
   scrollBottom()
+  optListTransition.value = true
+  setTimeout(() => {
+    optListTransition.value = false
+  }, 100);
 }
 function sendMessage () {
   if (inputValue.value) {
@@ -441,7 +454,7 @@ function goCard () {
       box-sizing: border-box;
       height: 60rpx;
       display: flex;
-      transition: all 0.1s linear;
+      // transition: all 0.1s linear;
       .tip-image{
         height: 50rpx;
         margin-right: 25rpx;
@@ -457,7 +470,6 @@ function goCard () {
       }
     }
     .opt-list{
-      transition: all 0.1s linear;
       display: flex;
       justify-content: space-around;
       align-items: center;
@@ -491,7 +503,7 @@ function goCard () {
       }
     }
     .bottom-input{
-      transition: bottom 0.1s linear;
+      // transition: bottom 0.1s linear;
       position: absolute;
       width: calc(100% - 40rpx);
       bottom: 0;
@@ -595,6 +607,9 @@ function goCard () {
     position: fixed;
     bottom: 0;
     left: 0;
+  }
+  .linear-transition{
+    transition: all 0.1s linear;
   }
 }
 </style>
