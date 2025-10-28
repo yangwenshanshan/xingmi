@@ -37,7 +37,7 @@ onMounted(() => {
 })
 const second = ref('0')
 function playAudio () {
-  emit('playAudio')
+  emit('playAudio', canPlay.value)
 }
 </script>
 <style lang="scss" scoped>
