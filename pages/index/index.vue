@@ -62,7 +62,7 @@ onLoad(() => {
 		],
 		filter: {
 			status: {
-				'_neq': 'archived'
+				'_eq': 'published'
 			}
 		},
 		sort: 'sort',

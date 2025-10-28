@@ -1,5 +1,5 @@
 <template>
-  <view class="TextMessage" :class="message.flow === 'out' ? 'self' : 'star'" @click="playAudio">
+  <view v-if="canPlay" class="TextMessage" :class="message.flow === 'out' ? 'self' : 'star'" @click="playAudio">
     <view class="message-item" v-if="message.flow === 'out'">
       <view style="margin-right: 10rpx;display: flex;align-items: center;">{{ second }}''</view>
       <view class="voice__play__icon__container" :class="{ 'web_wechat_voice_playing': isPlaying }"></view>
@@ -24,8 +24,10 @@ const props = defineProps({
   }
 })
 const emit = defineEmits(['playAudio'])
+const canPlay = ref(false)
 let innerAudioContext = uni.createInnerAudioContext();
 innerAudioContext.onCanplay(() => {
+	canPlay.value = true
   second.value = parseInt(innerAudioContext.duration)
 })
 onMounted(() => {
