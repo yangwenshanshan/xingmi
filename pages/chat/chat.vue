@@ -17,9 +17,9 @@
         </view>
       </view>
     </scroll-view>
-    <view class="chat-bottom-holder" :class="{ 'logpress-chat-bottom-holder': longPressing }" :style="longPressing ? `height: 908rpx` : `height: ${bottomHeight}`"></view>
-    <view class="chat-bottom" :style="`height: ${bottomHeight}`">
-      <view v-if="!longPressing" class="bottom-tip" :style="moreOpen ? 'top: 74rpx' : 'top: 148rpx'">
+    <view class="chat-bottom-holder" :class="{ 'logpress-chat-bottom-holder': longPressing }" :style="longPressing ? `height: 908rpx;bottom:${changeBottomVal}` : `height: ${bottomHeight};bottom:${changeBottomVal}`"></view>
+    <view class="chat-bottom" :style="`height: ${bottomHeight};bottom:${changeBottomVal}`">
+      <view v-if="!longPressing" class="bottom-tip" :style="moreOpen ? 'top: 74rpx;' : 'top: 148rpx'">
         <image class="tip-image" src="../../static/card-small-1.png" mode="heightFix" @click="goCard"></image>
         <view class="image-parent">
           <image class="tip-image" src="../../static/card-small-2.png" mode="heightFix"></image>
@@ -27,7 +27,7 @@
         </view>
         <image class="tip-image" src="../../static/card-small-3.png" mode="heightFix" @click="giftVisible = true"></image>
       </view>
-      <view  class="opt-list" v-if="moreOpen && inputVisible && !longPressing">
+      <view  class="opt-list" :style="moreOpen && inputVisible && !longPressing ? 'bottom: 100rpx' : 'bottom: -200rpx'">
         <view class="opt-item" @click="sendMsgImage"> 
           <image src="../../static/card-pic.png" mode="heightFix"></image>
           <view>图片</view>
@@ -215,21 +215,29 @@ function handleTouchEnd() {
 }
 function onTouchstartScrollView () {
   uni.hideKeyboard()
+  moreOpen.value = false
 }
 function scrollBottom () {
-  setTimeout(() => {
-    const query = uni.createSelectorQuery()
-    query.select('#content').boundingClientRect((res) => {
-      if (scrollTop.value === res.height) {
-        scrollTop.value++
-      } else {
-        scrollTop.value = res.height
-      }
-    }).exec()
-  }, 300);
+  nextTick(() => {
+    nextTick(() => {
+      const query = uni.createSelectorQuery()
+      query.select('#content').boundingClientRect((res) => {
+        if (scrollTop.value === res.height) {
+          scrollTop.value++
+        } else {
+          scrollTop.value = res.height
+        }
+      }).exec()
+    })
+  })
 }
 function keyboardheightchange(e) {
-  changeBottomVal.value = e.detail.height + 'px'
+  if (e.detail.height > 20) {
+    changeBottomVal.value = `calc(${e.detail.height + 'px'} - 70rpx)`
+  } else {
+    changeBottomVal.value = `${e.detail.height + 'px'}`
+  }
+  
   scrollBottom()
 }
 function getListMsg () {
@@ -255,6 +263,7 @@ function getListMsg () {
         element.type = 'TIMVideoFileElem'
         element.payload = {
           thumbUrl: getImage(element.asset),
+          videoUrl: getImage(element.asset),
         }
       }
       if (element.content_type === 'image') {
@@ -402,7 +411,7 @@ function goCard () {
 
   .info-list{
     width: 100vw;
-    transition: all 0.1s linear;
+    // transition: all 0.1s linear;
     .list-item{
       display: flex;
       width: 100vw;
@@ -418,11 +427,11 @@ function goCard () {
     }
   }
   .chat-bottom{
-    position: absolute;
+    position: fixed;
     bottom: 0;
     left: 0;
     width: 100%;
-    transition: all 0.1s linear;
+    // transition: all 0.1s linear;
     .bottom-tip{
       position: absolute;
       top: 0rpx;
@@ -572,12 +581,15 @@ function goCard () {
     }
   }
   .chat-bottom-holder{
+    position: fixed;
+    bottom: 0;
+    left: 0;
     width: 100%;
     background: linear-gradient(2.56deg, rgba(45, 0, 27, 0.5) 47.8%, rgba(84, 29, 62, 0) 98.81%);
     backdrop-filter: blur(20px);
     mask-image: linear-gradient(to top, rgba(0,0,0,1) 80%, rgba(0,0,0,0) 100%);
     box-sizing: border-box;
-    transition: all 0.1s linear;
+    // transition: all 0.1s linear;
   }
   .logpress-chat-bottom-holder{
     position: fixed;

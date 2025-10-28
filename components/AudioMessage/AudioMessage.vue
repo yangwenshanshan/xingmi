@@ -1,5 +1,5 @@
 <template>
-  <view v-if="canPlay" class="TextMessage" :class="message.flow === 'out' ? 'self' : 'star'" @click="playAudio">
+  <view class="TextMessage" :class="message.flow === 'out' ? 'self' : 'star'" @click="playAudio" :style="`width: ${second / 60 * 552}rpx`">
     <view class="message-item" v-if="message.flow === 'out'">
       <view style="margin-right: 10rpx;display: flex;align-items: center;">{{ second }}''</view>
       <view class="voice__play__icon__container" :class="{ 'web_wechat_voice_playing': isPlaying }"></view>
@@ -35,7 +35,7 @@ onMounted(() => {
     innerAudioContext.src = props.message.payload.url;
   }
 })
-const second = ref('')
+const second = ref('0')
 function playAudio () {
   emit('playAudio')
 }
@@ -46,8 +46,11 @@ function playAudio () {
   width: fit-content;
   box-sizing: border-box;
   padding: 20rpx;
+  height: 84rpx;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
+  min-width: 140rpx;
   .message-item{
     display: flex;
     align-items: center;
@@ -59,6 +62,7 @@ function playAudio () {
   border-top-right-radius: 8rpx;
   border-bottom-right-radius: 32rpx;
   border-bottom-left-radius: 32rpx;
+  justify-content: flex-end;
 }
 .star{
   border-top-left-radius: 8rpx;
@@ -67,6 +71,7 @@ function playAudio () {
   border-bottom-left-radius: 32rpx;
   background: #FFFFFF99;
   backdrop-filter: blur(20rpx);
+  justify-content: flex-start;
 }
 .web_wechat_voice_playing {
   animation: voicePlaying 1s infinite forwards
