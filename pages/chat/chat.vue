@@ -390,17 +390,23 @@ function sendMsgVideo () {
     sourceType: ['camera'],
     maxDuration: 60,
     success: (res) => {
-      let message = tim.createVideoMessage({
-        to: starId.value,
-        conversationType: 'C2C',
-        payload: {
-          file: res
-        },
-        onProgress: function(event) {}
-      });
-      tim.sendMessage(message).then((res) => {
-        msgList.value.push(res.data.message)
-        scrollBottom()
+      uni.compressVideo({
+        src: res.tempFilePath,
+        quality: 'high',
+        success: (res) => {
+          let message = tim.createVideoMessage({
+            to: starId.value,
+            conversationType: 'C2C',
+            payload: {
+              file: res
+            },
+            onProgress: function(event) {}
+          });
+          tim.sendMessage(message).then((res) => {
+            msgList.value.push(res.data.message)
+            scrollBottom()
+          })
+        }
       })
     }
   })
