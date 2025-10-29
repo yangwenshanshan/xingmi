@@ -73,7 +73,7 @@
                 <image mode="widthFix" style="width: 298rpx;" src="../../static/chat-calling.gif"></image>
               </view>
               <view class="loading-text">松开发送 上滑取消</view>
-              <view class="loading-bottom">
+              <view class="loading-bottom" id="loadingSpeak">
                 <image style="width: 46rpx;" mode="widthFix" src="../../static/chat-speaking.png"></image>
               </view>
             </view>
@@ -95,7 +95,9 @@ import { tim, timEvent } from '../../utils/tim'
 import http from '../../utils/http';
 import { getImage } from '../../utils/util';
 
-const recorderManager = uni.getRecorderManager();
+let recorderManager = null
+// #ifndef H5
+recorderManager = uni.getRecorderManager();
 recorderManager.onStop((res) => {
   if (canSendAudio.value) {
     let message = tim.createAudioMessage({
@@ -114,6 +116,7 @@ recorderManager.onStop((res) => {
     })
   }
 });
+// #endif
 let innerAudioContext = null
 const canSendAudio = ref(false)
 const optListTransition = ref(false)
@@ -211,18 +214,35 @@ function onMessageReceived (event) {
 }
 function handleTouchCancel () {
   canSendAudio.value = false
-  recorderManager.stop();
+  recorderManager && recorderManager.stop();
   longPressing.value = false
 }
 function handleTouchStart() {
   canSendAudio.value = false
-  recorderManager.start();
+  recorderManager && recorderManager.start();
   longPressing.value = true
 }
-function handleTouchEnd() {
-  canSendAudio.value = true
-  recorderManager.stop();
-  longPressing.value = false
+function handleTouchEnd(e) {
+  if (e && e.changedTouches.length) {
+    const query = uni.createSelectorQuery()
+    query.select('#loadingSpeak').boundingClientRect((rect) => {
+      recorderManager && recorderManager.stop();
+      longPressing.value = false
+
+      const touch = e.changedTouches[0];
+      const touchX = touch.clientX;
+      const touchY = touch.clientY;
+      const elemTop = rect.top;
+      const elemBottom = rect.bottom;
+      const elemLeft = rect.left;
+      const elemRight = rect.right;
+      if (touchX >= elemLeft && touchX <= elemRight && touchY >= elemTop && touchY <= elemBottom) {
+        canSendAudio.value = true
+      } else {
+        canSendAudio.value = false
+      }
+    }).exec()
+  }
 }
 function onTouchstartScrollView () {
   uni.hideKeyboard()
@@ -277,7 +297,7 @@ function getListMsg () {
       if (element.content_type === 'video') {
         element.type = 'TIMVideoFileElem'
         element.payload = {
-          thumbUrl: getImage(element.asset),
+          thumbUrl: '',
           videoUrl: getImage(element.asset),
         }
       }
