@@ -1,91 +1,94 @@
 <template>
-	<view class="chat" :style="`height: calc(100vh - ${changeBottomVal});${backgroundImage ? `background-image: url(${backgroundImage});` : ''}`">
-    <view class="status_bar"></view>
-    <view class="chat-star">
-      <view class="star-back" @click="goBack">
-        <image style="width: 14rpx;" mode="widthFix" src="../../static/bar-back.png"></image>
+  <view class="chat-main">
+    <view class="chat" :style="`height: calc(100vh - ${changeBottomVal});${backgroundImage ? `background-image: url(${backgroundImage});` : ''}`">
+      <view class="status_bar"></view>
+      <view class="chat-star">
+        <view class="star-back" @click="goBack">
+          <image style="width: 14rpx;" mode="widthFix" src="../../static/bar-back.png"></image>
+        </view>
+        <StarInfo v-if="detail" :icon="detail.user.avatar" :name="detail.name " :desc="detail.desc"></StarInfo>
       </view>
-      <StarInfo v-if="detail" :icon="detail.user.avatar" :name="detail.name " :desc="detail.desc"></StarInfo>
-    </view>
-    <scroll-view @touchstart="onTouchstartScrollView" class="info-list" scroll-y :style="`height: ${scrollViewHeight}`" :scroll-top="scrollTop">
-      <view id="content">
-        <view class="list-item" v-for="item in msgList" :class="item.flow === 'out' ? 'self-parent' : 'star-parent'">
-          <TextMessage v-if="item.type === 'TIMTextElem'" :message="item"></TextMessage>
-          <ImageMessage v-if="item.type === 'TIMImageElem'" :message="item"></ImageMessage>
-          <VideoMessage v-if="item.type === 'TIMVideoFileElem'" :message="item"></VideoMessage>
-          <AudioMessage :isPlaying="item.isPlaying" @playAudio="(flag) => playAudio(item, flag)" v-if="item.type === 'TIMSoundElem'" :message="item"></AudioMessage>
+      <scroll-view @touchstart="onTouchstartScrollView" class="info-list" scroll-y :style="`height: ${scrollViewHeight}`" :scroll-top="scrollTop">
+        <view id="content">
+          <view class="list-item" v-for="item in msgList" :class="item.flow === 'out' ? 'self-parent' : 'star-parent'">
+            <TextMessage v-if="item.type === 'TIMTextElem'" :message="item"></TextMessage>
+            <ImageMessage v-if="item.type === 'TIMImageElem'" :message="item"></ImageMessage>
+            <VideoMessage v-if="item.type === 'TIMVideoFileElem'" :message="item"></VideoMessage>
+            <AudioMessage :isPlaying="item.isPlaying" @playAudio="(flag) => playAudio(item, flag)" v-if="item.type === 'TIMSoundElem'" :message="item"></AudioMessage>
+          </view>
         </view>
-      </view>
-    </scroll-view>
-    <view class="chat-bottom-holder" :class="{ 'logpress-chat-bottom-holder': longPressing }" :style="longPressing ? `height: 908rpx;bottom:${changeBottomVal}` : `height: ${bottomHeight};bottom:${changeBottomVal}`"></view>
-    <view class="chat-bottom" :style="`height: ${bottomHeight};bottom:${changeBottomVal}`">
-      <view v-if="!longPressing" class="bottom-tip" :class="{ 'linear-transition': optListTransition }" :style="moreOpen ? 'top: 74rpx;' : 'top: 148rpx'">
-        <image class="tip-image" src="../../static/card-small-1.png" mode="heightFix" @click="goCard"></image>
-        <view class="image-parent">
-          <image class="tip-image" src="../../static/card-small-2.png" mode="heightFix"></image>
-          <image class="tip-image-tip" src="../../static/expectations.png" mode="heightFix"></image>
+      </scroll-view>
+      <view class="chat-bottom-holder" :class="{ 'logpress-chat-bottom-holder': longPressing }" :style="longPressing ? `height: 908rpx;bottom:${changeBottomVal}` : `height: ${bottomHeight};bottom:${changeBottomVal}`"></view>
+      <view class="chat-bottom" :style="`height: ${bottomHeight};bottom:${changeBottomVal}`">
+        <view v-if="!longPressing" class="bottom-tip" :class="{ 'linear-transition': optListTransition }" :style="moreOpen ? 'top: 74rpx;' : 'top: 148rpx'">
+          <image class="tip-image" src="../../static/card-small-1.png" mode="heightFix" @click="goCard"></image>
+          <view class="image-parent">
+            <image class="tip-image" src="../../static/card-small-2.png" mode="heightFix"></image>
+            <image class="tip-image-tip" src="../../static/expectations.png" mode="heightFix"></image>
+          </view>
+          <image class="tip-image" src="../../static/card-small-3.png" mode="heightFix" @click="giftVisible = true"></image>
         </view>
-        <image class="tip-image" src="../../static/card-small-3.png" mode="heightFix" @click="giftVisible = true"></image>
-      </view>
-      <view  class="opt-list" :class="{ 'linear-transition': optListTransition }" :style="moreOpen && inputVisible && !longPressing ? 'bottom: 100rpx' : 'bottom: -200rpx'">
-        <view class="opt-item" @click="sendMsgImage"> 
-          <image src="../../static/card-pic.png" mode="heightFix"></image>
-          <view>图片</view>
+        <view  class="opt-list" :class="{ 'linear-transition': optListTransition }" :style="moreOpen && inputVisible && !longPressing ? 'bottom: 100rpx' : 'bottom: -200rpx'">
+          <view class="opt-item" @click="sendMsgImage"> 
+            <image src="../../static/card-pic.png" mode="heightFix"></image>
+            <view>图片</view>
+          </view>
+          <view class="opt-item" @click="sendMsgVideo">
+            <image src="../../static/card-photo.png" mode="heightFix"></image>
+            <view>拍摄</view>
+          </view>
+          <view class="opt-item" @click="showAudio">
+            <image src="../../static/card-phone.png" mode="heightFix"></image>
+            <view>语音</view>
+          </view>
+          <view class="opt-item" @click="goVideo">
+            <image src="../../static/card-video.png" mode="heightFix"></image>
+            <view>视频</view>
+          </view>
         </view>
-        <view class="opt-item" @click="sendMsgVideo">
-          <image src="../../static/card-photo.png" mode="heightFix"></image>
-          <view>拍摄</view>
+        <view class="opt-gift" v-if="giftVisible && !longPressing" @click="giftVisible = false">
+          <image src="../../static/gift.png" mode="widthFix" class="gift-image"></image>
         </view>
-        <view class="opt-item" @click="showAudio">
-          <image src="../../static/card-phone.png" mode="heightFix"></image>
-          <view>语音</view>
-        </view>
-        <view class="opt-item" @click="goVideo">
-          <image src="../../static/card-video.png" mode="heightFix"></image>
-          <view>视频</view>
-        </view>
-      </view>
-      <view class="opt-gift" v-if="giftVisible && !longPressing" @click="giftVisible = false">
-        <image src="../../static/gift.png" mode="widthFix" class="gift-image"></image>
-      </view>
-      <view class="bottom-input" :class="{ 'bottom-input-pressing': longPressing, 'linear-transition': optListTransition }" :style="moreOpen ? 'bottom: 312rpx' : 'bottom: 80rpx'">
-        <template v-if="!longPressing">
-          <image @click="inputVisibleClick(false)" v-if="inputVisible" class="input-image" src="../../static/chat-audio.png"></image>
-          <image @click="inputVisibleClick(true)" v-else class="input-image" src="../../static/chat-input.png"></image>
-        </template>
-        <view class="input-main">
-          <input
-            :adjust-position="false"
-            @keyboardheightchange="keyboardheightchange"
-            @focus="inputFocus"
-            v-model="inputValue"
-            @confirm="sendMessage"
-            :cursor-spacing="0"
-            v-if="inputVisible"
-            confirm-type="send"
-            placeholder="发消息..."
-            placeholder-style="color: #ffffff"
-          ></input>
-          <view :class="longPressing ? 'long-pressing' : ''" @touchcancel="handleTouchCancel" @touchstart="handleTouchStart" @touchend="handleTouchEnd" class="main-speak" v-else>
-            <template v-if="!longPressing">按住说话</template>
-            <view v-else class="speaking">
-              <view class="speak-loading">
-                <image mode="widthFix" style="width: 298rpx;" src="../../static/chat-calling.gif"></image>
-              </view>
-              <view class="loading-text">松开发送 上滑取消</view>
-              <view class="loading-bottom" id="loadingSpeak">
-                <image style="width: 46rpx;" mode="widthFix" src="../../static/chat-speaking.png"></image>
+        <view class="bottom-input" :class="{ 'bottom-input-pressing': longPressing, 'linear-transition': optListTransition }" :style="moreOpen ? 'bottom: 312rpx' : 'bottom: 80rpx'">
+          <template v-if="!longPressing">
+            <image @click="inputVisibleClick(false)" v-if="inputVisible" class="input-image" src="../../static/chat-audio.png"></image>
+            <image @click="inputVisibleClick(true)" v-else class="input-image" src="../../static/chat-input.png"></image>
+          </template>
+          <view class="input-main">
+            <input
+              :adjust-position="false"
+              @keyboardheightchange="keyboardheightchange"
+              @focus="inputFocus"
+              v-model="inputValue"
+              @confirm="sendMessage"
+              :cursor-spacing="0"
+              v-if="inputVisible"
+              confirm-type="send"
+              placeholder="发消息..."
+              placeholder-style="color: #ffffff"
+            ></input>
+            <view :class="longPressing ? 'long-pressing' : ''" @touchcancel="handleTouchCancel" @touchstart="handleTouchStart" @touchend="handleTouchEnd" class="main-speak" v-else>
+              <template v-if="!longPressing">按住说话</template>
+              <view v-else class="speaking">
+                <view class="speak-loading">
+                  <image mode="widthFix" style="width: 298rpx;" src="../../static/chat-calling.gif"></image>
+                </view>
+                <view class="loading-text">松开发送 上滑取消</view>
+                <view class="loading-bottom" id="loadingSpeak">
+                  <image style="width: 46rpx;" mode="widthFix" src="../../static/chat-speaking.png"></image>
+                </view>
               </view>
             </view>
           </view>
+          <template v-if="!longPressing">
+            <image v-if="!moreOpen" class="input-image" src="../../static/chat-more.png" @click="moreOpenClick(true)"></image>
+            <image v-else class="input-image" src="../../static/chat-more-open.png" @click="moreOpenClick(false)"></image>
+          </template>
         </view>
-        <template v-if="!longPressing">
-          <image v-if="!moreOpen" class="input-image" src="../../static/chat-more.png" @click="moreOpenClick(true)"></image>
-          <image v-else class="input-image" src="../../static/chat-more-open.png" @click="moreOpenClick(false)"></image>
-        </template>
       </view>
     </view>
-	</view>
+    <view class="chat-mask" v-if="maskShow" @touchstart="maskTouch"></view>
+  </view>
 </template>
 
 <script setup>
@@ -129,6 +132,7 @@ const inputVisible = ref(true)
 const moreOpen = ref(false)
 const scrollTop = ref(0)
 const longPressing = ref(false)
+const maskShow = ref(false)
 const detail = ref(null)
 const changeBottomVal = ref('0px')
 const bottomHeight = computed(() => {
@@ -167,6 +171,10 @@ onUnload(() => {
   }
   tim.off(timEvent.MESSAGE_RECEIVED, onMessageReceived);
 })
+function maskTouch () {
+  uni.hideKeyboard()
+  maskShow.value = false
+}
 function playAudio (item, flag) {
   if (!flag) {
      uni.showToast({
@@ -268,6 +276,7 @@ function scrollBottom () {
 }
 function keyboardheightchange(e) {
   if (e.detail.height > 20) {
+    maskShow.value = true
     changeBottomVal.value = `calc(${e.detail.height + 'px'} - 70rpx)`
   } else {
     changeBottomVal.value = `${e.detail.height + 'px'}`
@@ -389,24 +398,19 @@ function sendMsgVideo () {
   uni.chooseVideo({
     sourceType: ['camera'],
     maxDuration: 60,
+    compressed: false,
     success: (res) => {
-      uni.compressVideo({
-        src: res.tempFilePath,
-        quality: 'high',
-        success: (res) => {
-          let message = tim.createVideoMessage({
-            to: starId.value,
-            conversationType: 'C2C',
-            payload: {
-              file: res
-            },
-            onProgress: function(event) {}
-          });
-          tim.sendMessage(message).then((res) => {
-            msgList.value.push(res.data.message)
-            scrollBottom()
-          })
-        }
+      let message = tim.createVideoMessage({
+        to: starId.value,
+        conversationType: 'C2C',
+        payload: {
+          file: res
+        },
+        onProgress: function(event) {}
+      });
+      tim.sendMessage(message).then((res) => {
+        msgList.value.push(res.data.message)
+        scrollBottom()
       })
     }
   })
@@ -433,6 +437,18 @@ function goCard () {
 </script>
 
 <style lang="scss">
+.chat-main{
+  .chat-mask{
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0,0,0,0);
+  }
+}
 .chat{
   width: 100vw;
   background-image: url('../../static/chat-bg.png');

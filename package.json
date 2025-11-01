@@ -11,6 +11,8 @@
   "description": "",
   "dependencies": {
     "@tencentcloud/chat": "^3.5.9",
+    "lottie-miniprogram": "^1.0.12",
+    "lottie-web": "^5.13.0",
     "tim-upload-plugin": "^1.4.3"
   }
 }

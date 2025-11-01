@@ -1,16 +1,16 @@
 <template>
   <view class="message-main" :class="message.flow === 'out' ? 'parent-self' : 'parent-star'">
-    <view class="TextMessage" :class="message.flow === 'out' ? 'self' : 'star'" :style="`width: ${second / 60 * 552}rpx`" @longpress="audioLongpress">
-      <view class="message-item" v-if="message.flow === 'out'" @click="playAudio">
+    <view @click="playAudio" class="TextMessage" :class="message.flow === 'out' ? 'self' : 'star'" :style="`width: ${second / 60 * 552}rpx`" @longpress="audioLongpress">
+      <view class="message-item" v-if="message.flow === 'out'">
         <view style="margin-right: 10rpx;display: flex;align-items: center;">{{ second }}''</view>
         <view class="voice__play__icon__container" :class="{ 'web_wechat_voice_playing': isPlaying }"></view>
       </view>
-      <view class="message-item" v-if="message.flow === 'in'" @click="playAudio">
+      <view class="message-item" v-if="message.flow === 'in'">
         <view class="voice__play__icon__container" style="transform: rotate(180deg);" :class="{ 'web_wechat_voice_playing': isPlaying }"></view>
         <view style="margin-left: 10rpx;display: flex;align-items: center;">{{ second }}''</view>
       </view>
       <view v-if="audio2TextVisible" class="audio-to-text">
-        <image src="/static/audio-to-text.png" mode="widthFix" @click="audio2Text"></image>
+        <image src="/static/audio-to-text.png" mode="widthFix" @click.stop="audio2Text"></image>
       </view>
     </view>
     <view class="text-main" v-if="textMessageVisible">
@@ -63,11 +63,13 @@ const second = ref('0')
 function playAudio () {
   emit('playAudio', canPlay.value)
 }
-function audioLongpress (e, a) {
+function audioLongpress () {
   if (textMessageVisible.value) {
+    textLongpress()
     return
+  } else {
+    audio2TextVisible.value = true
   }
-  audio2TextVisible.value = true
 }
 function textLongpress () {
   textCloseVisible.value = true

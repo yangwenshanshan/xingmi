@@ -6,6 +6,7 @@
     <view class="user-item" v-for="(item, index) in userList" :key="index" @click="chooseItem(item)">
       <view class="item-name">{{ item.name }}</view>
     </view>
+    <!-- <c-lottie :data="start" width="750rpx" height='750rpx' :loop="true"></c-lottie> -->
   </BasePage>
 </template>
 
@@ -14,6 +15,7 @@ import { tim, timEvent } from '../../utils/tim';
 import http from '../../utils/http'
 import { ref } from 'vue';
 import { setToken } from '../../utils/config';
+// import start from "../../static/lottie/Animation1.json";
 
 const userList = ref([
   {
