@@ -1,6 +1,7 @@
 <template>
   <view class="chat-main">
     <view class="chat" :style="`height: calc(100vh - ${changeBottomVal});${backgroundImage ? `background-image: url(${backgroundImage});` : ''}`">
+      <view class="top-mask" :style="`height: ${topMaskHeight};${backgroundImage ? `background-image: url(${backgroundImage});` : ''}`"></view>
       <view class="status_bar"></view>
       <view class="chat-star">
         <view class="star-back" @click="goBack">
@@ -8,8 +9,8 @@
         </view>
         <StarInfo v-if="detail" :icon="detail.user.avatar" :name="detail.name " :desc="detail.desc"></StarInfo>
       </view>
-      <scroll-view @touchstart="onTouchstartScrollView" class="info-list" scroll-y :style="`height: ${scrollViewHeight}`" :scroll-top="scrollTop">
-        <view id="content">
+      <scroll-view class="info-list" scroll-y :style="`height: ${scrollViewHeight}`" :scroll-top="scrollTop">
+        <view id="content" @touchmove="onTouchmoveScrollView" @touchstart="onTouchstartScrollView" :style="`padding-top: ${topMaskHeight};`">
           <view class="list-item" v-for="item in msgList" :class="item.flow === 'out' ? 'self-parent' : 'star-parent'">
             <TextMessage v-if="item.type === 'TIMTextElem'" :message="item"></TextMessage>
             <ImageMessage v-if="item.type === 'TIMImageElem'" :message="item"></ImageMessage>
@@ -121,6 +122,20 @@ recorderManager.onStop((res) => {
 });
 // #endif
 let innerAudioContext = null
+const isScrollToTop = ref(false)
+const topMaskHeight = computed(() => {
+  if (isScrollToTop.value) {
+    return '117rpx'
+  }
+  if (moreOpen.value) {
+    return '390rpx'
+  }
+  if (maskShow.value) {
+    return '150rpx'
+  }
+  return '566rpx'
+})
+const touchStartY = ref(0)
 const canSendAudio = ref(false)
 const optListTransition = ref(false)
 const starId = ref('')
@@ -252,7 +267,19 @@ function handleTouchEnd(e) {
     }).exec()
   }
 }
-function onTouchstartScrollView () {
+function onTouchmoveScrollView (e) {
+  if (!isScrollToTop.value && e && e.changedTouches.length) {
+    const touch = e.changedTouches[0];
+    if (touchStartY.value - touch.clientY < -20) {
+      isScrollToTop.value = true
+    }
+  }
+}
+function onTouchstartScrollView (e) {
+  if (!isScrollToTop.value && e && e.changedTouches.length) {
+    const touch = e.changedTouches[0];
+    touchStartY.value = touch.clientY;
+  }
   uni.hideKeyboard()
   moreOpen.value = false
   optListTransition.value = true
@@ -261,24 +288,23 @@ function onTouchstartScrollView () {
   }, 100);
 }
 function scrollBottom () {
-  nextTick(() => {
-    nextTick(() => {
-      const query = uni.createSelectorQuery()
-      query.select('#content').boundingClientRect((res) => {
-        if (scrollTop.value === res.height) {
-          scrollTop.value++
-        } else {
-          scrollTop.value = res.height
-        }
-      }).exec()
-    })
-  })
+  setTimeout(() => {
+    const query = uni.createSelectorQuery()
+    query.select('#content').boundingClientRect((res) => {
+      if (scrollTop.value === res.height) {
+        scrollTop.value++
+      } else {
+        scrollTop.value = res.height
+      }
+    }).exec()
+  }, 100);
 }
 function keyboardheightchange(e) {
   if (e.detail.height > 20) {
     maskShow.value = true
     changeBottomVal.value = `calc(${e.detail.height + 'px'} - 70rpx)`
   } else {
+    maskShow.value = false
     changeBottomVal.value = `${e.detail.height + 'px'}`
   }
   
@@ -465,6 +491,8 @@ function goCard () {
     margin: 17rpx 0;
     display: flex;
     .star-back{
+      display: flex;
+      align-items: center;
       padding: 20rpx;
       margin-left: 10rpx;
       margin-right: 8rpx;
@@ -659,6 +687,18 @@ function goCard () {
   }
   .linear-transition{
     transition: all 0.1s linear;
+  }
+  .top-mask{
+    position: absolute;
+    top: calc(130rpx + var(--status-bar-height));
+    left: 0;
+    width: 100%;
+    z-index: 100;
+    background-image: url('../../static/chat-bg.png');
+    background-size: 100% auto;
+    background-position: 0 calc(-130rpx - var(--status-bar-height));
+    mask-image: linear-gradient(to bottom, rgba(255,255,255,1) calc(100% - 80rpx), rgba(255,255,255,0) 100%);
+    transition: height 0.1s linear;
   }
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
   <view class="TextMessage" :class="message.flow === 'out' ? 'self' : 'star'">
-    {{ textInfo.text }}
+    <slot>{{ textInfo.text }}</slot>
   </view>
 </template>
 <script setup>
