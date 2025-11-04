@@ -14,7 +14,14 @@
       </view>
     </view>
     <view class="text-main" v-if="textMessageVisible">
-      <TextMessage style="margin-top: 11rpx;" :message="textMessage" @longpress="textLongpress"></TextMessage>
+      <TextMessage style="margin-top: 11rpx;" :message="textMessage" @longpress="textLongpress">
+        <view v-if="message.text_content">
+          {{ message.text_content }}
+        </view>
+        <view v-else style="display: flex;align-items: center;">
+          <image style="width: 44rpx;height: 44rpx;" mode="widthFix" src="../../static/loading.gif"></image>
+        </view>
+      </TextMessage>
       <view v-if="textCloseVisible" class="audio-to-text">
         <image src="/static/text-close.png" mode="widthFix" @click="textClose"></image>
       </view>
@@ -23,6 +30,7 @@
 </template>
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import http from '../../utils/http'
 
 const props = defineProps({
   message: {
@@ -34,15 +42,13 @@ const props = defineProps({
     default: false
   }
 })
+const message = ref({ ...props.message })
 const textCloseVisible = ref(false)
 const textMessageVisible = ref(false)
 const textMessage = computed(() => {
   return {
     type: 'TIMTextElem',
-    flow: props.message.flow,
-    payload: {
-      text: props.message.text_content
-    }
+    flow: message.value.flow,
   }
 })
 
@@ -55,13 +61,13 @@ innerAudioContext.onCanplay(() => {
   second.value = parseInt(innerAudioContext.duration)
 })
 onMounted(() => {
-  if (props.message && props.message.payload) {
-    innerAudioContext.src = props.message.payload.url;
+  if (message.value && message.value.payload) {
+    innerAudioContext.src = message.value.payload.url;
   }
 })
 const second = ref('0')
 function playAudio () {
-  emit('playAudio', canPlay.value)
+  emit('playAudio')
 }
 function audioLongpress () {
   if (textMessageVisible.value) {
@@ -77,11 +83,52 @@ function textLongpress () {
 function audio2Text () {
   textMessageVisible.value = true
   audio2TextVisible.value = false
+  if (message.value && !message.value.id && message.value.ID) {
+    getChatTextFive(message.value.ID).then(data => {
+      if (data) {
+        message.value.text_content = data.text_content
+      } else {
+        message.value.text_content = '转换失败'
+      }
+    }).catch((error) => {
+      console.log(error)
+    })
+  }
 }
 function textClose () {
   textMessageVisible.value = false
   audio2TextVisible.value = false
   textCloseVisible.value = false
+}
+async function getChatTextFive (messageId) {
+  let attempts = 0;
+  while (attempts < 5) {
+    const result = await getChatText(messageId);
+    if (result && result.length > 0) {
+      return result[0];
+    }
+    attempts++;
+    await new Promise(resolve => setTimeout(resolve, 3000));
+  }
+  return false;
+}
+function getChatText (messageId) {
+  return new Promise((resolve, reject) => {
+    http.get('/items/chat_messages', {
+      fields: [
+        '*'
+      ],
+      filter: {
+        tencent_im_message_id: {
+				  '_eq': messageId
+        }
+      }
+    }).then(res => {
+      resolve(res.data)
+    }).catch((error) => {
+      reject(error)
+    })
+  })
 }
 </script>
 <style lang="scss" scoped>

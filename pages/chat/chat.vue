@@ -15,7 +15,7 @@
             <TextMessage v-if="item.type === 'TIMTextElem'" :message="item"></TextMessage>
             <ImageMessage v-if="item.type === 'TIMImageElem'" :message="item"></ImageMessage>
             <VideoMessage v-if="item.type === 'TIMVideoFileElem'" :message="item"></VideoMessage>
-            <AudioMessage :isPlaying="item.isPlaying" @playAudio="(flag) => playAudio(item, flag)" v-if="item.type === 'TIMSoundElem'" :message="item"></AudioMessage>
+            <AudioMessage :isPlaying="item.isPlaying" @playAudio="playAudio(item)" v-if="item.type === 'TIMSoundElem'" :message="item"></AudioMessage>
           </view>
         </view>
       </scroll-view>
@@ -190,14 +190,7 @@ function maskTouch () {
   uni.hideKeyboard()
   maskShow.value = false
 }
-function playAudio (item, flag) {
-  if (!flag) {
-     uni.showToast({
-      icon: 'none',
-      title: '音频加载中，请稍后',
-    });
-    return
-  }
+function playAudio (item) {
   const playing = item.isPlaying
   msgList.value.forEach(el => {
     if (el.type === 'TIMSoundElem') {
@@ -210,6 +203,11 @@ function playAudio (item, flag) {
     innerAudioContext = null
     item.isPlaying = false
   } else {
+    if (innerAudioContext) {
+      innerAudioContext.stop()
+      innerAudioContext.destroy()
+      innerAudioContext = null
+    }
     innerAudioContext = uni.createInnerAudioContext()
     innerAudioContext.onEnded(() => {
       item.isPlaying = false
