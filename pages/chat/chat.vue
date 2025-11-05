@@ -2,6 +2,7 @@
   <view class="chat-main">
     <view class="chat" :style="`height: calc(100vh - ${changeBottomVal});${backgroundImage ? `background-image: url(${backgroundImage});` : ''}`">
       <view class="top-mask" :style="`height: ${topMaskHeight};${backgroundImage ? `background-image: url(${backgroundImage});` : ''}`"></view>
+      <view class="top-tip">提示：对话均由AI生成</view>
       <view class="status_bar"></view>
       <view class="chat-star">
         <view class="star-back" @click="goBack">
@@ -125,7 +126,7 @@ let innerAudioContext = null
 const isScrollToTop = ref(false)
 const topMaskHeight = computed(() => {
   if (isScrollToTop.value) {
-    return '117rpx'
+    return '187rpx'
   }
   if (moreOpen.value) {
     return '390rpx'
@@ -212,6 +213,13 @@ function playAudio (item) {
     innerAudioContext.onEnded(() => {
       item.isPlaying = false
     })
+    innerAudioContext.onError(() => {
+      item.isPlaying = false
+      uni.showToast({
+        icon: 'none',
+        title: '未知错误',
+      });
+    })
     innerAudioContext.src = item.payload.url
     innerAudioContext.play()
     item.isPlaying = true
@@ -230,6 +238,7 @@ function getDetail() {
 }
 function onMessageReceived (event) {
   let arr = event.data.filter((res) => res.conversationID === `C2C${starId.value}`)
+  console.log(arr)
   msgList.value.push(...arr)
   scrollBottom()
 }
@@ -310,7 +319,7 @@ function keyboardheightchange(e) {
 }
 function getListMsg () {
   http.get(`/items/chat/${chatId.value}`, {
-    fields: ['id', 'messages.*'],
+    fields: ['id', 'messages.*', 'messages.asset_metadata.*'],
     deep: {
       messages: {
         _limit: 1000,
@@ -329,15 +338,25 @@ function getListMsg () {
       }
       if (element.content_type === 'video') {
         element.type = 'TIMVideoFileElem'
-        element.payload = {
-          thumbUrl: '',
-          videoUrl: getImage(element.asset),
+        if (element.asset_metadata) {
+          element.payload = {
+            thumbUrl: getImage(element.asset_metadata.thumbnail),
+            thumbWidth: element.asset_metadata && element.asset_metadata.width,
+            thumbHeight: element.asset_metadata && element.asset_metadata.height,
+            videoUrl: getImage(element.asset),
+          }
+        } else {
+          element.payload = {
+            videoUrl: getImage(element.asset),
+          }
         }
       }
       if (element.content_type === 'image') {
         element.type = 'TIMImageElem'
         element.payload = {
           imageInfoArray: [{
+            width: element.asset_metadata && element.asset_metadata.width,
+            height: element.asset_metadata && element.asset_metadata.height,
             url: getImage(element.asset),
           }]
         }
@@ -483,6 +502,17 @@ function goCard () {
   .status_bar {
     height: var(--status-bar-height);
     width: 100%;
+  }
+
+  .top-tip{
+    position: absolute;
+    top: calc(150rpx + var(--status-bar-height));
+    left: 0;
+    width: 100%;
+    z-index: 101;
+    color: rgba(255,255,255,0.5);
+    font-size: 24rpx;
+    text-align: center;
   }
 
   .chat-star{

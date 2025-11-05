@@ -2,8 +2,8 @@
     "name" : "Starrice",
     "appid" : "__UNI__9BD8009",
     "description" : "",
-    "versionName" : "1.0.7",
-    "versionCode" : 100007,
+    "versionName" : "1.0.8",
+    "versionCode" : 100008,
     "transformPx" : false,
     /* 5+App特有相关 */
     "app-plus" : {

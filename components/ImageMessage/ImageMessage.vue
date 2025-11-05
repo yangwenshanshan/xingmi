@@ -1,15 +1,15 @@
 <template>
   <view class="TUI-ImageMessage" @click="previewImage">
-    <!-- :style="`height:${imageInfo.height}px; width: ${imageInfo.width}px;`" -->
     <image
       class="image-message"
-      mode="widthFix"
+      mode="aspectFill"
       :src="imageInfo.url"
+      :style="`height:${imageHeight}rpx; width: ${imageWidth}rpx;`"
     />
   </view>
 </template>
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
 const props = defineProps({
   message: {
@@ -17,7 +17,14 @@ const props = defineProps({
     default: () => {}
   },
 })
-
+const imageWidth = ref(282)
+const imageHeight = computed(() => {
+  if (imageInfo.value.width && imageInfo.value.height) {
+    return `${imageInfo.value.height / imageInfo.value.width * imageWidth.value}`
+  } else {
+    return 400
+  }
+})
 const imageInfo = computed(() => {
   if (props.message && props.message.payload) {
     return props.message.payload.imageInfoArray[0]
