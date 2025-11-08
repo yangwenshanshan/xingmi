@@ -23,7 +23,7 @@
         </view>
       </TextMessage>
       <view v-if="textCloseVisible" class="audio-to-text">
-        <image src="/static/text-close.png" mode="widthFix" @click="textClose"></image>
+        <image src="/static/text-close.png" mode="widthFix" @click.stop="textClose"></image>
       </view>
     </view>
   </view>
@@ -155,7 +155,7 @@ function getChatText (messageId) {
   box-sizing: border-box;
   display: flex;
   align-items: center;
-  min-width: 140rpx;
+  min-width: 170rpx;
   position: relative;
   .message-item{
     display: flex;

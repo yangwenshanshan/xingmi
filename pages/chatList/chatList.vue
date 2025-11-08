@@ -14,7 +14,7 @@
 						<view class="item-avatar">
 							<image mode="widthFix" v-if="item.idol && item.idol.user && item.idol.user.avatar" :src="getImage(item.idol.user.avatar)"></image>
 							<image mode="widthFix" v-else src="../../static/default-icon.png"></image>
-							<!-- <view class="avatar-count" :class="item * 20 < 99 ? 'round' : 'auto-round'">{{ item * 20 }}</view> -->
+							<view class="avatar-count" v-if="item.unReadCount" :class="item.unReadCount < 99 ? 'round' : 'auto-round'">{{ item.unReadCount }}</view>
 						</view>
 						<view class="item-info">
 							<view class="info-name">{{ item.idol.name }}</view>
@@ -36,13 +36,22 @@
 
 <script setup>
 import { onMounted, ref } from 'vue'
-import { onShow } from '@dcloudio/uni-app'
+import { onShow, onLoad, onUnload, onHide } from '@dcloudio/uni-app'
 import { getUserInfo } from '../../utils/config'
 import http from '../../utils/http'
 import { getImage } from '../../utils/util'
+import { tim, timEvent } from '../../utils/tim'
 
 const chatList = ref([])
 function goChat (item) {
+	if (item.unReadMessage && item.unReadMessage.length) {
+		http.patch('/items/chat_messages', {
+			data: {
+				is_read: true
+			},
+			keys: item.unReadMessage.map(el => el.id)
+		})
+	}
 	uni.navigateTo({
 		url: `/pages/chat/chat?idol=${item.idol.id}&chat=${item.id}`
 	})
@@ -72,8 +81,37 @@ function formatTime(timestamp) {
 		}
 	}
 }
-onShow(() => {
-	http.get('/items/chat', {
+function getChatUnReadCount () {
+	return http.get('/items/chat', {
+		limit: 20,
+		filter: {
+			_and: [
+				{
+					user: {
+						_eq: getUserInfo().id
+					}
+				}
+			]
+		},
+		fields: [
+			'id',
+			'messages.id',
+			'messages.date_created',
+		],
+		sort: '-messages.date_created',
+		page: 1,
+		deep: {
+			messages: {
+				_filter: {
+					role: 'idol',
+					is_read: false
+				},
+			}
+		}
+	})
+}
+function getChatList () {
+	return http.get('/items/chat', {
 		limit: 20,
 		filter: {
 			_and: [
@@ -105,10 +143,36 @@ onShow(() => {
 				_sort: '-date_created',
 			}
 		}
-	}).then(res => {
-		chatList.value = res.data
 	})
+}
+function onMessageReceived () {
+	onshowFun()
+}
+onShow(() => {
+	tim.on(timEvent.MESSAGE_RECEIVED, onMessageReceived);
 })
+onHide(() => {
+	tim.off(timEvent.MESSAGE_RECEIVED, onMessageReceived);
+})
+onShow(() => {
+	onshowFun()
+})
+function onshowFun () {
+	Promise.all([getChatList(), getChatUnReadCount()]).then(responses => {
+		const [ lists, counts ] = responses
+		const list = lists.data
+		const count = counts.data
+		console.log(counts)
+		list.forEach(element => {
+			const item = count.find(el => el.id === element.id)
+			if (item && item.messages) {
+				element.unReadMessage = [ ...item.messages ]
+				element.unReadCount = item.messages.length
+			}
+		})
+		chatList.value = list
+	})
+}
 function goBack () {
 	uni.navigateBack()
 }

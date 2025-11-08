@@ -22,6 +22,7 @@ const request = (url, method, data) => {
 const http = {
   get: (url, params) => request(url, 'get', params),
   post: (url, data) => request(url, 'post', data),
+  patch: (url, data) => request(url, 'patch', data),
 }
 
 export default http

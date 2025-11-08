@@ -13,11 +13,17 @@
       <scroll-view class="info-list" scroll-y :style="`height: ${scrollViewHeight}`" :scroll-top="scrollTop">
         <view id="content" @touchmove="onTouchmoveScrollView" @touchstart="onTouchstartScrollView" :style="`padding-top: ${topMaskHeight};`">
           <view class="list-item" v-for="item in msgList" :class="item.flow === 'out' ? 'self-parent' : 'star-parent'">
+            <view v-if="item.loading">
+              <image style="width: 50rpx;" mode="widthFix" src="/static/message-loading.gif"></image>
+            </view>
             <TextMessage v-if="item.type === 'TIMTextElem'" :message="item"></TextMessage>
             <ImageMessage v-if="item.type === 'TIMImageElem'" :message="item"></ImageMessage>
             <VideoMessage v-if="item.type === 'TIMVideoFileElem'" :message="item"></VideoMessage>
             <AudioMessage :isPlaying="item.isPlaying" @playAudio="playAudio(item)" v-if="item.type === 'TIMSoundElem'" :message="item"></AudioMessage>
           </view>
+          <!-- <view>
+            <c-lottie :data="idolLoading" width="200rpx" height='100rpx' :loop="true"></c-lottie>
+          </view> -->
         </view>
       </scroll-view>
       <view class="chat-bottom-holder" :class="{ 'logpress-chat-bottom-holder': longPressing }" :style="longPressing ? `height: 908rpx;bottom:${changeBottomVal}` : `height: ${bottomHeight};bottom:${changeBottomVal}`"></view>
@@ -99,6 +105,7 @@ import { computed, ref, nextTick } from 'vue'
 import { tim, timEvent } from '../../utils/tim'
 import http from '../../utils/http';
 import { getImage } from '../../utils/util';
+// import idolLoading from "../../static/lottie/idol-loading.json";
 
 let recorderManager = null
 // #ifndef H5
@@ -115,9 +122,16 @@ recorderManager.onStop((res) => {
         console.log(event)
       }
     })
+    message.loading = true
+    msgList.value.push(message)
+    scrollBottom()
     tim.sendMessage(message).then(response => {
-      msgList.value.push(response.data.message)
-      scrollBottom()
+      const index = msgList.value.findIndex(el => el.ID === message.ID)
+      const rmessage = {
+          ...response.data.message,
+          loading: false
+        }
+      msgList.value.splice(index, 1, rmessage)
     })
   }
 });
@@ -239,6 +253,23 @@ function getDetail() {
 function onMessageReceived (event) {
   let arr = event.data.filter((res) => res.conversationID === `C2C${starId.value}`)
   console.log(arr)
+  http.get('/items/chat_messages', {
+    fields: [ 'id' ],
+    filter: {
+      tencent_im_message_id: {
+        '_in': arr.map(el => el.ID)
+      }
+    }
+  }).then(res => {
+    if (res && res.data && res.data.length) {
+      http.patch('/items/chat_messages', {
+        data: {
+          is_read: true
+        },
+        keys: res.data.map(el => el.id)
+      })
+    }
+  })
   msgList.value.push(...arr)
   scrollBottom()
 }
@@ -408,9 +439,16 @@ function sendMessage () {
       conversationType: 'C2C',
       payload: { text: inputValue.value }
     });
+    message.loading = true
+    msgList.value.push(message)
+    scrollBottom()
     tim.sendMessage(message).then(res => {
-      msgList.value.push(res.data.message)
-      scrollBottom()
+      const index = msgList.value.findIndex(el => el.ID === message.ID)
+      const rmessage = {
+        ...res.data.message,
+        loading: false
+      }
+      msgList.value.splice(index, 1, rmessage)
     })
     inputValue.value = ''
   }
@@ -430,9 +468,16 @@ function sendMsgImage () {
         },
         onProgress: function(event) {}
       });
+      message.loading = true
+      msgList.value.push(message)
+      scrollBottom()
       tim.sendMessage(message).then((res) => {
-        msgList.value.push(res.data.message)
-        scrollBottom()
+        const index = msgList.value.findIndex(el => el.ID === message.ID)
+        const rmessage = {
+          ...res.data.message,
+          loading: false
+        }
+        msgList.value.splice(index, 1, rmessage)
       })
     }
   })
@@ -451,9 +496,16 @@ function sendMsgVideo () {
         },
         onProgress: function(event) {}
       });
+      message.loading = true
+      msgList.value.push(message)
+      scrollBottom()
       tim.sendMessage(message).then((res) => {
-        msgList.value.push(res.data.message)
-        scrollBottom()
+        const index = msgList.value.findIndex(el => el.ID === message.ID)
+        const rmessage = {
+          ...res.data.message,
+          loading: false
+        }
+        msgList.value.splice(index, 1, rmessage)
       })
     }
   })
@@ -532,6 +584,7 @@ function goCard () {
     // transition: all 0.1s linear;
     .list-item{
       display: flex;
+      align-items: center;
       width: 100vw;
       padding: 0 30rpx;
       box-sizing: border-box;
