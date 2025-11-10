@@ -19,7 +19,7 @@
             <TextMessage v-if="item.type === 'TIMTextElem'" :message="item"></TextMessage>
             <ImageMessage v-if="item.type === 'TIMImageElem'" :message="item"></ImageMessage>
             <VideoMessage v-if="item.type === 'TIMVideoFileElem'" :message="item"></VideoMessage>
-            <AudioMessage :isPlaying="item.isPlaying" @playAudio="playAudio(item)" v-if="item.type === 'TIMSoundElem'" :message="item"></AudioMessage>
+            <AudioMessage ref="audioMessage" @press="audioPress" :isPlaying="item.isPlaying" @playAudio="playAudio(item)" v-if="item.type === 'TIMSoundElem'" :message="item"></AudioMessage>
           </view>
           <!-- <view>
             <c-lottie :data="idolLoading" width="200rpx" height='100rpx' :loop="true"></c-lottie>
@@ -34,9 +34,9 @@
             <image class="tip-image" src="../../static/card-small-2.png" mode="heightFix"></image>
             <image class="tip-image-tip" src="../../static/expectations.png" mode="heightFix"></image>
           </view>
-          <image class="tip-image" src="../../static/card-small-3.png" mode="heightFix" @click="giftVisible = true"></image>
+          <image class="tip-image" src="../../static/card-small-3.png" mode="heightFix" @click="giftShow(true)"></image>
         </view>
-        <view  class="opt-list" :class="{ 'linear-transition': optListTransition }" :style="moreOpen && inputVisible && !longPressing ? 'bottom: 100rpx' : 'bottom: -200rpx'">
+        <view class="opt-list" :class="{ 'linear-transition': optListTransition }" :style="moreOpen && inputVisible && !longPressing ? 'bottom: 100rpx' : 'bottom: -200rpx'">
           <view class="opt-item" @click="sendMsgImage"> 
             <image src="../../static/card-pic.png" mode="heightFix"></image>
             <view>图片</view>
@@ -54,7 +54,7 @@
             <view>视频</view>
           </view>
         </view>
-        <view class="opt-gift" v-if="giftVisible && !longPressing" @click="giftVisible = false">
+        <view class="opt-gift" v-if="giftVisible && !longPressing" @click="giftShow(false)">
           <image src="../../static/gift.png" mode="widthFix" class="gift-image"></image>
         </view>
         <view class="bottom-input" :class="{ 'bottom-input-pressing': longPressing, 'linear-transition': optListTransition }" :style="moreOpen ? 'bottom: 312rpx' : 'bottom: 80rpx'">
@@ -137,6 +137,8 @@ recorderManager.onStop((res) => {
 });
 // #endif
 let innerAudioContext = null
+const audioVisible = ref(false)
+const audioMessage = ref(null)
 const isScrollToTop = ref(false)
 const topMaskHeight = computed(() => {
   if (isScrollToTop.value) {
@@ -306,6 +308,7 @@ function handleTouchEnd(e) {
   }
 }
 function onTouchmoveScrollView (e) {
+  audioMaskTouch()
   if (!isScrollToTop.value && e && e.changedTouches.length) {
     const touch = e.changedTouches[0];
     if (touchStartY.value - touch.clientY < -20) {
@@ -415,12 +418,18 @@ function inputFocus () {
   moreOpen.value = false
 }
 function inputVisibleClick (flag) {
+  audioMaskTouch()
   inputVisible.value = flag
   if (flag === false) {
     moreOpen.value = false
   }
 }
+function giftShow(flag) {
+  audioMaskTouch()
+  giftVisible.value = flag
+}
 function moreOpenClick (flag) {
+  audioMaskTouch()
   optListTransition.value = true
   moreOpen.value = flag
   if (flag === true) {
@@ -454,6 +463,7 @@ function sendMessage () {
   }
 }
 function sendMsgImage () {
+  audioMaskTouch()
   uni.chooseImage({
     count: 1,
     sourceType: ['album'],
@@ -483,6 +493,7 @@ function sendMsgImage () {
   })
 }
 function sendMsgVideo () {
+  audioMaskTouch()
   uni.chooseVideo({
     sourceType: ['camera'],
     maxDuration: 60,
@@ -511,6 +522,7 @@ function sendMsgVideo () {
   })
 }
 function showAudio () {
+  audioMaskTouch()
   uni.navigateTo({
 		url: '/pages/calling/calling'
 	})
@@ -519,15 +531,26 @@ function goBack () {
 	uni.navigateBack()
 }
 function goVideo () {
+  audioMaskTouch()
   uni.showToast({
     icon: 'none',
     title: '敬请期待',
   });
 }
 function goCard () {
+  audioMaskTouch()
   uni.navigateTo({
 		url: '/pages/card/card'
 	})
+}
+function audioPress () {
+  audioVisible.value = true
+}
+function audioMaskTouch () {
+  audioMessage.value.forEach(el => {
+    el && el.closeTip()
+  })
+  audioVisible.value = false
 }
 </script>
 

@@ -52,7 +52,7 @@ const textMessage = computed(() => {
   }
 })
 
-const emit = defineEmits(['playAudio'])
+const emit = defineEmits(['playAudio', 'press'])
 const audio2TextVisible = ref(false)
 const canPlay = ref(false)
 let innerAudioContext = uni.createInnerAudioContext();
@@ -71,9 +71,11 @@ function playAudio () {
 }
 function audioLongpress () {
   if (textMessageVisible.value) {
+    emit('press')
     textLongpress()
     return
   } else {
+    emit('press')
     audio2TextVisible.value = true
   }
 }
@@ -97,6 +99,10 @@ function audio2Text () {
 }
 function textClose () {
   textMessageVisible.value = false
+  audio2TextVisible.value = false
+  textCloseVisible.value = false
+}
+function closeTip () {
   audio2TextVisible.value = false
   textCloseVisible.value = false
 }
@@ -130,6 +136,9 @@ function getChatText (messageId) {
     })
   })
 }
+defineExpose({
+  closeTip
+})
 </script>
 <style lang="scss" scoped>
 .message-main{
