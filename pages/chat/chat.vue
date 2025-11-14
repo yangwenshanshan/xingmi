@@ -306,6 +306,10 @@ function handleTouchEnd(e) {
       }
     }).exec()
   }
+  // if (!e) {
+  //   longPressing.value = false
+  //   canSendAudio.value = true
+  // }
 }
 function onTouchmoveScrollView (e) {
   audioMaskTouch()
@@ -397,6 +401,7 @@ function getListMsg () {
       }
       if (element.content_type === 'audio') {
         element.type = 'TIMSoundElem'
+        element.second = element.asset_metadata ? element.asset_metadata.audio_duration : 0
         element.payload = {
           url: getImage(element.asset),
         }

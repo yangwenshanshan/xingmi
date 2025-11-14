@@ -1,13 +1,13 @@
 <template>
   <view class="message-main" :class="message.flow === 'out' ? 'parent-self' : 'parent-star'">
-    <view @click="playAudio" class="TextMessage" :class="message.flow === 'out' ? 'self' : 'star'" :style="`width: ${second / 60 * 552}rpx`" @longpress="audioLongpress">
+    <view @click="playAudio" class="TextMessage" :class="message.flow === 'out' ? 'self' : 'star'" :style="`width: ${message.second / 60 * 552}rpx`" @longpress="audioLongpress">
       <view class="message-item" v-if="message.flow === 'out'">
-        <view style="margin-right: 10rpx;display: flex;align-items: center;">{{ second }}''</view>
+        <view style="margin-right: 0rpx;display: flex;align-items: center;">{{ message.second }}''</view>
         <view class="voice__play__icon__container" :class="{ 'web_wechat_voice_playing': isPlaying }"></view>
       </view>
       <view class="message-item" v-if="message.flow === 'in'">
         <view class="voice__play__icon__container" style="transform: rotate(180deg);" :class="{ 'web_wechat_voice_playing': isPlaying }"></view>
-        <view style="margin-left: 10rpx;display: flex;align-items: center;">{{ second }}''</view>
+        <view style="margin-left: 0rpx;display: flex;align-items: center;">{{ message.second }}''</view>
       </view>
       <view v-if="audio2TextVisible" class="audio-to-text">
         <image src="/static/audio-to-text.png" mode="widthFix" @click.stop="audio2Text"></image>
@@ -54,18 +54,14 @@ const textMessage = computed(() => {
 
 const emit = defineEmits(['playAudio', 'press'])
 const audio2TextVisible = ref(false)
-const canPlay = ref(false)
-let innerAudioContext = uni.createInnerAudioContext();
-innerAudioContext.onCanplay(() => {
-	canPlay.value = true
-  second.value = parseInt(innerAudioContext.duration)
-})
-onMounted(() => {
-  if (message.value && message.value.payload) {
-    innerAudioContext.src = message.value.payload.url;
-  }
-})
-const second = ref('0')
+if (message.value && !message.value.second && message.value.payload) {
+  message.value.second = 0
+  let innerAudioContext = uni.createInnerAudioContext();
+  innerAudioContext.src = message.value.payload.url;
+  innerAudioContext.onCanplay(() => {
+    message.value.second = parseInt(innerAudioContext.duration)
+  })
+}
 function playAudio () {
   emit('playAudio')
 }
@@ -164,7 +160,7 @@ defineExpose({
   box-sizing: border-box;
   display: flex;
   align-items: center;
-  min-width: 170rpx;
+  min-width: 120rpx;
   position: relative;
   .message-item{
     display: flex;
@@ -192,12 +188,12 @@ defineExpose({
   animation: voicePlaying 1s infinite forwards
 }
 .voice__play__icon__container {
-  background: url(https://res.wx.qq.com/t/fed_upload/7e4688e4-d39b-421b-8f04-27fdb397d4ee/icon__voice.svg) no-repeat 100%;
+  background: url('../../static/rgcyi-kjfua.png') no-repeat 100%;
   display: block;
   flex-shrink: 0;
-  height: 22px;
-  margin-left: 4px;
-  width: 22px
+  height: 44rpx;
+  // margin-left: 4px;
+  width: 44rpx
 }
 .audio-to-text{
   width: 119rpx;
