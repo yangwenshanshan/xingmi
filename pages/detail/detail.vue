@@ -36,12 +36,24 @@
 			<view class="detail-line">
 				<image mode="widthFix" src="../../static/detail-line.png"></image>
 			</view>
-			<view class="detail-publish-list">
+			<view class="detail-publish-list" v-if="starId === '10780641-90bb-4cbe-a255-31cf7285935b'">
 				<view class="publish-item">
 					<image mode="widthFix" src="../../static/detail-holder-1.png"></image>
+					<image mode="widthFix" src="../../static/detail-holder-3.png"></image>
 				</view>
 				<view class="publish-item">
 					<image mode="widthFix" src="../../static/detail-holder-2.png"></image>
+					<image mode="widthFix" src="../../static/detail-holder-4.png"></image>
+				</view>
+			</view>
+			<view class="detail-publish-list" v-else>
+				<view class="publish-item">
+					<image mode="widthFix" src="../../static/fangzhou-1.png"></image>
+					<image mode="widthFix" src="../../static/fangzhou-3.jpg"></image>
+				</view>
+				<view class="publish-item">
+					<image mode="widthFix" src="../../static/fangzhou-2.png"></image>
+					<image mode="widthFix" src="../../static/fangzhou-4.jpg"></image>
 				</view>
 			</view>
 		</BasePage>
@@ -220,6 +232,8 @@ function goBack () {
 			image{
 				width: 342rpx;
 				display: block;
+				border-radius: 30rpx;
+				margin-bottom: 18rpx;
 			}
 		}
 	}
