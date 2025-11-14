@@ -1,6 +1,6 @@
 <template>
   <view class="message-main" :class="message.flow === 'out' ? 'parent-self' : 'parent-star'">
-    <view @click="playAudio" class="TextMessage" :class="message.flow === 'out' ? 'self' : 'star'" :style="`width: ${message.second / 60 * 552}rpx`" @longpress="audioLongpress">
+    <view @click="playAudio" class="TextMessage" :class="message.flow === 'out' ? 'self' : 'star'" :style="`width: ${ 120 + (message.second / 60 * 432)}rpx`" @longpress="audioLongpress">
       <view class="message-item" v-if="message.flow === 'out'">
         <view style="margin-right: 0rpx;display: flex;align-items: center;">{{ message.second }}''</view>
         <view class="voice__play__icon__container" :class="{ 'web_wechat_voice_playing': isPlaying }"></view>
