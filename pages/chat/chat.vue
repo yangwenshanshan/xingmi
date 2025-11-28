@@ -54,9 +54,6 @@
             <view>视频</view>
           </view>
         </view>
-        <view class="opt-gift" v-if="giftVisible && !longPressing" @click="giftShow(false)">
-          <image src="../../static/gift.png" mode="widthFix" class="gift-image"></image>
-        </view>
         <view class="bottom-input" :class="{ 'bottom-input-pressing': longPressing, 'linear-transition': optListTransition }" :style="moreOpen ? 'bottom: 312rpx' : 'bottom: 80rpx'">
           <template v-if="!longPressing">
             <image @click="inputVisibleClick(false)" v-if="inputVisible" class="input-image" src="../../static/chat-audio.png"></image>
@@ -96,6 +93,35 @@
       </view>
     </view>
     <view class="chat-mask" v-if="maskShow" @touchstart="maskTouch"></view>
+    <view class="opt-gift" v-if="giftVisible && !longPressing" @click="giftShow(false)">
+      <view class="gift-main">
+        <view class="gift-title">
+          <view class="title-name">礼物</view>
+          <view class="title-money">
+            <view>
+              <image src="../../static/gift-money.png" mode="widthFix"></image>
+            </view>
+            <view>32</view>
+          </view>
+          <view class="title-more">
+            <view>充值</view>
+            <view>
+              <image src="../../static/gift-more.png" mode="widthFix"></image>
+            </view>
+          </view>
+        </view>
+        <view class="gift-list">
+          <view @click.stop="chooseGift(index)" :class="activeGiftIndex === index ? 'active-gift' : ''" class="gift-item" v-for="(item, index) in 12" :key="item">
+            <view class="item-image">
+              <image src="../../static/gift-1.png" mode="widthFix"></image>
+            </view>
+            <view class="item-name" v-if="activeGiftIndex !== index">小帽子</view>
+            <view class="item-price">100星米</view>
+            <view class="item-btn" v-if="activeGiftIndex === index">送出</view>
+          </view>
+        </view>
+      </view>
+    </view>
   </view>
 </template>
 
@@ -140,6 +166,7 @@ let innerAudioContext = null
 const audioVisible = ref(false)
 const audioMessage = ref(null)
 const isScrollToTop = ref(false)
+const activeGiftIndex = ref(-1)
 const topMaskHeight = computed(() => {
   if (isScrollToTop.value) {
     return '187rpx'
@@ -239,6 +266,22 @@ function playAudio (item) {
     innerAudioContext.src = item.payload.url
     innerAudioContext.play()
     item.isPlaying = true
+  }
+}
+function chooseGift (index) {
+  if (activeGiftIndex.value !== index) {
+    activeGiftIndex.value = index
+  } else {
+    giftVisible.value = false
+    uni.showToast({
+      icon: 'none',
+      title: '礼物🎁成功送出',
+      duration: 1000,
+      mask: true,
+    })
+    // setTimeout(() => {
+      
+    // }, 1000);
   }
 }
 function getDetail() {
@@ -431,6 +474,7 @@ function inputVisibleClick (flag) {
 }
 function giftShow(flag) {
   audioMaskTouch()
+  activeGiftIndex.value = -1
   giftVisible.value = flag
 }
 function moreOpenClick (flag) {
@@ -674,20 +718,6 @@ function audioMaskTouch () {
         }
       }
     }
-    .opt-gift{
-      position: absolute;
-      width: 100vw;
-      height: 100vh;
-      left: 0;
-      bottom: 0;
-      z-index: 3;
-      .gift-image{
-        position: absolute;
-        width: 100%;
-        bottom: 0;
-        left: 0;
-      }
-    }
     .bottom-input{
       // transition: bottom 0.1s linear;
       position: absolute;
@@ -808,6 +838,103 @@ function audioMaskTouch () {
     background-position: 0 calc(-130rpx - var(--status-bar-height));
     mask-image: linear-gradient(to bottom, rgba(255,255,255,1) calc(100% - 80rpx), rgba(255,255,255,0) 100%);
     transition: height 0.1s linear;
+  }
+}
+.opt-gift{
+  position: fixed;
+  width: 100vw;
+  height: 100vh;
+  left: 0;
+  bottom: 0;
+  z-index: 102;
+  .gift-main{
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: #06050B;
+    border-top-left-radius: 20rpx;
+    border-top-right-radius: 20rpx;
+    padding: 22rpx;
+    box-sizing: border-box;
+    .gift-list{
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      .gift-item{
+        width: 169rpx;
+        height: 214rpx;
+        overflow: hidden;
+        position: relative;
+        .item-image{
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          image{
+            width: 120rpx;
+            height: 120rpx;
+          }
+        }
+        .item-name{
+          font-size: 22rpx;
+          color: #ffffff;
+          text-align: center;
+        }
+        .item-price{
+          font-size: 16rpx;
+          color: #ADADAD;
+          text-align: center;
+        }
+        .item-btn{
+          width: 100%;
+          height: 60rpx;
+          color: #ffffff;
+          font-size: 22rpx;
+          text-align: center;
+          line-height: 60rpx;
+          background: #FF569F;
+          position: absolute;
+          bottom: 0;
+          left: 0;
+        }
+      }
+      .active-gift{
+        background-color: #222127;
+        border-radius: 22rpx;
+      }
+    }
+    .gift-title{
+      display: flex;
+      align-items: center;
+      margin-bottom: 20rpx;
+      .title-name{
+        flex: 1;
+        font-size: 26rpx;
+        color: #ffffff;
+      }
+      .title-money{
+        font-size: 24rpx;
+        color: #FBD54B;
+        display: flex;
+        align-items: center;
+        margin-right: 20rpx;
+        image{
+          width: 23rpx;
+          display: block;
+          margin-right: 6rpx;
+        }
+      }
+      .title-more{
+        color: #FBD54B;
+        font-size: 26rpx;
+        display: flex;
+        align-items: center;
+        image{
+          width: 14rpx;
+          display: block;
+          margin-left: 6rpx;
+        }
+      }
+    }
   }
 }
 </style>
